@@ -6,11 +6,17 @@ param vnetName string = 'shirdemo'
 
 param dataFactoryName string = 'shirdemo${uniqueString(resourceGroup().id)}'
 
+param storageAccountName string = 'shirdemo${uniqueString(resourceGroup().id)}'
+
 param appName string = 'app-${uniqueString(resourceGroup().id)}'
 
 param appServicePlanSku object = {
   name: 'P2v3'
   capacity: 1
+}
+
+param storageAccountSku object = {
+  name: 'Standard_LRS'
 }
 
 param containerImageName string
@@ -30,6 +36,17 @@ module vnet 'modules/vnet.bicep' = {
   params: {
     name: vnetName
     location: location
+  }
+}
+
+module storage 'modules/storage.bicep' = {
+  name: 'storage'
+  params: {
+    location: location
+    name: storageAccountName
+    privateDnsZoneResourceId: vnet.outputs.privateDnsZoneResourceId
+    privateEndpointSubnetResourceId: vnet.outputs.storageSubnetResourceId
+    storageAccountSku: storageAccountSku
   }
 }
 
