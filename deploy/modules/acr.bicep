@@ -16,5 +16,3 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-pr
 }
 
 output registryName string = containerRegistry.name
-
-output registryHostName string = containerRegistry.properties.dataEndpointHostNames[0]

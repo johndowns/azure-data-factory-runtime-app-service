@@ -1,10 +1,10 @@
 param location string = resourceGroup().location
 
-param acrRegistryName string = 'acr-${uniqueString(resourceGroup().id)}'
+param acrRegistryName string = 'acr${uniqueString(resourceGroup().id)}'
 
-param vnetName string = 'shir-demo'
+param vnetName string = 'shirdemo'
 
-param dataFactoryName string = 'shir-demo'
+param dataFactoryName string = 'shirdemo${uniqueString(resourceGroup().id)}'
 
 param appName string = 'app-${uniqueString(resourceGroup().id)}'
 
@@ -48,18 +48,6 @@ module applicationInsights 'modules/application-insights.bicep' = {
   }
 }
 
-resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' existing = {
-  name: acr.outputs.registryName
-}
-
-resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' existing = {
-  name: adf.outputs.dataFactoryName
-
-  resource integrationRuntime 'integrationRuntimes' existing = {
-    name: adf.outputs.integrationRuntimeName
-  }
-}
-
 module app 'modules/app.bicep' = {
   name: 'app'
   params: {
@@ -68,12 +56,10 @@ module app 'modules/app.bicep' = {
     applicationInsightsInstrumentationKey: applicationInsights.outputs.instrumentationKey
     applicationInsightsConnectionString: applicationInsights.outputs.connectionString
     containerRegistryName: acr.outputs.registryName
-    dockerRegistryUrl: 'https://${acr.outputs.registryHostName}'
-    dockerRegistryUsername: containerRegistry.listCredentials().username
-    dockerRegistryPassword: containerRegistry.listCredentials().passwords[0].value
     containerImageName: containerImageName
     containerImageTag: containerImageTag
-     dataFactoryIntegrationRuntimeAuthKey: dataFactory::integrationRuntime.listAuthKeys().authKey1
+    dataFactoryName: adf.outputs.dataFactoryName
+    dataFactoryIntegrationRuntimeName: adf.outputs.integrationRuntimeName
     appServicePlanSku: appServicePlanSku
   }
 }

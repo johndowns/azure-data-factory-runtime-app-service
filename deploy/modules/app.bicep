@@ -10,21 +10,27 @@ param applicationInsightsInstrumentationKey string
 
 param applicationInsightsConnectionString string
 
-param dockerRegistryUrl string
-
-param dockerRegistryUsername string
-
-@secure()
-param dockerRegistryPassword string
-
 param containerRegistryName string
 
 param containerImageName string
 
 param containerImageTag string
 
-@secure()
-param dataFactoryIntegrationRuntimeAuthKey string
+param dataFactoryName string
+
+param dataFactoryIntegrationRuntimeName string
+
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' existing = {
+  name: containerRegistryName
+}
+
+resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' existing = {
+  name: dataFactoryName
+
+  resource integrationRuntime 'integrationRuntimes' existing = {
+    name: dataFactoryIntegrationRuntimeName
+  }
+}
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   name: appServicePlanName
@@ -36,6 +42,7 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
   name: appName
   location: location
   properties: {
+    serverFarmId: appServicePlan.id
     siteConfig: {
       appSettings: [
         {
@@ -60,15 +67,15 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
         }
         {
           name: 'DOCKER_REGISTRY_SERVER_URL'
-          value: dockerRegistryUrl
+          value: 'https://${containerRegistryName}.azurecr.io' // TODO
         }
         {
           name: 'DOCKER_REGISTRY_SERVER_USERNAME'
-          value: dockerRegistryUsername
+          value: containerRegistry.listCredentials().username
         }
         {
           name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
-          value: dockerRegistryPassword
+          value: containerRegistry.listCredentials().passwords[0].value
         }
         {
           name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
@@ -76,7 +83,7 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
         }
         {
           name: 'AUTH_KEY'
-          value: dataFactoryIntegrationRuntimeAuthKey
+          value: dataFactory::integrationRuntime.listAuthKeys().authKey1
         }
       ]
       vnetRouteAllEnabled: true
