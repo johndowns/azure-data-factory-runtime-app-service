@@ -8,7 +8,7 @@ param appOutboundSubnetAddressPrefix string = '10.0.0.0/24'
 
 param dataFactorySubnetAddressPrefix string = '10.0.1.0/24'
 
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
+resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-08-01' = {
   name: name
   location: location
   properties: {
@@ -22,12 +22,26 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
         name: 'app-outbound'
         properties: {
           addressPrefix: appOutboundSubnetAddressPrefix
+          delegations: [
+            {
+              name: 'delegation'
+              properties: {
+                serviceName: 'Microsoft.Web/serverfarms'
+              }
+            }
+          ]
+          serviceEndpoints: [
+            {
+              service: 'Microsoft.Storage'
+            }
+          ]
         }
       }
       {
         name: 'data-factory'
         properties: {
           addressPrefix: dataFactorySubnetAddressPrefix
+          privateEndpointNetworkPolicies: 'Enabled'
         }
       }
     ]

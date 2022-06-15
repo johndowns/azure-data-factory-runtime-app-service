@@ -19,3 +19,7 @@ resource integrationRuntime 'Microsoft.DataFactory/factories/integrationRuntimes
     type: 'SelfHosted'
   }
 }
+
+output dataFactoryName string = dataFactory.name
+
+output integrationRuntimeName string = integrationRuntimeName

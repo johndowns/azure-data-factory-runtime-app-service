@@ -11,6 +11,10 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-pr
     name: skuName
   }
   properties: {
-    adminUserEnabled: true // TODO check if this can be disabled
+    adminUserEnabled: true // TODO check if this can be disabled and MI used instead
   }
 }
+
+output registryName string = containerRegistry.name
+
+output registryHostName string = containerRegistry.properties.dataEndpointHostNames[0]
