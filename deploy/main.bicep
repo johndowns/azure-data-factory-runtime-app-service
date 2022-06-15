@@ -25,7 +25,7 @@ module acr 'modules/acr.bicep' = {
   }
 }
 
-module vnet 'modules/acr.bicep' = {
+module vnet 'modules/vnet.bicep' = {
   name: 'vnet'
   params: {
     name: vnetName
