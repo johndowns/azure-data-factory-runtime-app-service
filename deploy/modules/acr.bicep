@@ -11,7 +11,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-pr
     name: skuName
   }
   properties: {
-    adminUserEnabled: true // TODO check if this can be disabled and MI used instead
+    adminUserEnabled: false
   }
 }
 

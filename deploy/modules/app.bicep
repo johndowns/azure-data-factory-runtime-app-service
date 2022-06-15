@@ -41,6 +41,9 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
 resource app 'Microsoft.Web/sites@2021-03-01' = {
   name: appName
   location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
@@ -70,14 +73,6 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
           value: 'https://${containerRegistryName}.azurecr.io' // TODO
         }
         {
-          name: 'DOCKER_REGISTRY_SERVER_USERNAME'
-          value: containerRegistry.listCredentials().username
-        }
-        {
-          name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
-          value: containerRegistry.listCredentials().passwords[0].value
-        }
-        {
           name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
           value: 'false'
         }
@@ -86,6 +81,7 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
           value: dataFactory::integrationRuntime.listAuthKeys().authKey1
         }
       ]
+      acrUseManagedIdentityCreds: true
       vnetRouteAllEnabled: true
       windowsFxVersion: 'DOCKER|${containerRegistryName}.azurecr.io/${containerImageName}:${containerImageTag}' // TODO assemble this properly
       appCommandLine: ''
@@ -94,3 +90,5 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
     }
   }
 }
+
+output appManagedIdentityPrincipalId string = app.identity.principalId

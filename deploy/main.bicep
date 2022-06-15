@@ -63,3 +63,11 @@ module app 'modules/app.bicep' = {
     appServicePlanSku: appServicePlanSku
   }
 }
+
+module appAcrRoleAssignment 'modules/acr-role-assignment.bicep' = {
+  name: 'app-acr-role-assignment'
+  params: {
+    containerRegistryName: acr.outputs.registryName
+    principalId: app.outputs.appManagedIdentityPrincipalId
+  }
+}
