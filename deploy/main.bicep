@@ -2,6 +2,8 @@ param location string = resourceGroup().location
 
 param containerRegistryName string
 
+param containerRegistryResourceGroupName string
+
 param containerRegistryUsername string
 
 @secure()
@@ -99,6 +101,7 @@ module app 'modules/app.bicep' = {
     applicationInsightsInstrumentationKey: applicationInsights.outputs.instrumentationKey
     applicationInsightsConnectionString: applicationInsights.outputs.connectionString
     containerRegistryName: containerRegistryName
+    containerRegistryResourceGroupName: containerRegistryResourceGroupName
     containerRegistryUsername: containerRegistryUsername
     containerRegistryPassword: containerRegistryPassword
     containerImageName: containerImageName
@@ -109,13 +112,3 @@ module app 'modules/app.bicep' = {
     appServicePlanSku: appServicePlanSku
   }
 }
-
-/*
-module appAcrRoleAssignment 'modules/acr-role-assignment.bicep' = {
-  name: 'app-acr-role-assignment'
-  params: {
-    containerRegistryName: acr.outputs.registryName
-    principalId: app.outputs.appManagedIdentityPrincipalId
-  }
-}
-*/

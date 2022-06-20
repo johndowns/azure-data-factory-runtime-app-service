@@ -14,6 +14,8 @@ param applicationInsightsConnectionString string
 
 param containerRegistryName string
 
+param containerRegistryResourceGroupName string
+
 param containerRegistryUsername string
 
 @secure()
@@ -30,6 +32,8 @@ param dataFactoryName string
 param dataFactoryIntegrationRuntimeName string
 
 param dataFactoryIntegrationRuntimeNodeName string = 'AppServiceContainer'
+
+var managedIdentityName = 'SampleApp'
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' existing = {
   name: containerRegistryName
@@ -57,11 +61,28 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   }
 }
 
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
+  name: managedIdentityName
+  location: location
+}
+
+module appAcrRoleAssignment 'acr-role-assignment.bicep' = {
+  name: 'app-acr-role-assignment'
+  scope: resourceGroup(containerRegistryResourceGroupName)
+  params: {
+    containerRegistryName: containerRegistryName
+    principalId: managedIdentity.properties.principalId
+  }
+}
+
 resource app 'Microsoft.Web/sites@2021-03-01' = {
   name: appName
   location: location
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${managedIdentity.id}': {}
+    }
   }
   properties: {
     serverFarmId: appServicePlan.id
@@ -116,17 +137,16 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
           name: 'CONTAINER_AVAILABILITY_CHECK_MODE'
           value: 'Off'
         }
-        {
-          name: 'WEBSITES_CONTAINER_STOP_TIME_LIMIT'
-          value: '00:02:00'
-        }
       ]
+      acrUseManagedIdentityCreds: true
+      acrUserManagedIdentityID: managedIdentity.properties.clientId
       windowsFxVersion: appWindowsFxVersion
       appCommandLine: containerStartCommand
       alwaysOn: true
       ftpsState: 'Disabled'
     }
   }
+  dependsOn: [
+    appAcrRoleAssignment // Wait for the role assignment so the app can pull from the container registry.
+  ]
 }
-
-output appManagedIdentityPrincipalId string = app.identity.principalId
