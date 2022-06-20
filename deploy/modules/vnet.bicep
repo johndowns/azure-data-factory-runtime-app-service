@@ -8,13 +8,11 @@ param appOutboundSubnetAddressPrefix string = '10.0.0.0/24'
 
 param dataFactorySubnetAddressPrefix string = '10.0.1.0/24'
 
-param storageSubnetAddressPrefix string = '10.0.2.0/24'
-
-param privateDnsZoneName string = 'privatelink.blob.${environment().suffixes.storage}'
+param vmSubnetAddressPrefix string = '10.0.2.0/24'
 
 var appOutboundSubnetName = 'app-outbound'
 var dataFactorySubnetName = 'data-factory'
-var storageSubnetName = 'storage'
+var vmSubnetName = 'vm'
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-08-01' = {
   name: name
@@ -53,10 +51,9 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-08-01' = {
         }
       }
       {
-        name: storageSubnetName
+        name: vmSubnetName
         properties: {
-          addressPrefix: storageSubnetAddressPrefix
-          privateEndpointNetworkPolicies: 'Enabled'
+          addressPrefix: vmSubnetAddressPrefix
         }
       }
     ]
@@ -70,11 +67,12 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-08-01' = {
     name: dataFactorySubnetName
   }
 
-  resource storageSubnet 'subnets' existing = {
-    name: storageSubnetName
+  resource vmSubnet 'subnets' existing = {
+    name: vmSubnetName
   }
 }
 
+/*
 resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
   name: privateDnsZoneName
   location: 'global'
@@ -93,5 +91,7 @@ resource privateDnsZoneLinkToVNet 'Microsoft.Network/privateDnsZones/virtualNetw
 }
 
 output privateDnsZoneResourceId string = privateDnsZone.id
+*/
 
-output storageSubnetResourceId string = virtualNetwork::storageSubnet.id
+output vmSubnetResourceId string = virtualNetwork::vmSubnet.id
+output appOutboundSubnetResourceId string = virtualNetwork::appOutboundSubnet.id
