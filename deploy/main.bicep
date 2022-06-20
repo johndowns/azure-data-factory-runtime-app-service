@@ -1,34 +1,25 @@
 param location string = resourceGroup().location
 
-param acrRegistryName string = 'acr${uniqueString(resourceGroup().id)}'
+param containerRegistryName string
+
+param containerRegistryUsername string
+
+@secure()
+param containerRegistryPassword string
+
+param containerImageName string = 'adf/shir'
+
+param containerImageTag string = 'v3'
 
 param vnetName string = 'shirdemo'
 
 param dataFactoryName string = 'shirdemo${uniqueString(resourceGroup().id)}'
-
-param storageAccountName string = 'shirdemo${uniqueString(resourceGroup().id)}'
 
 param appName string = 'app-${uniqueString(resourceGroup().id)}'
 
 param appServicePlanSku object = {
   name: 'P2v3'
   capacity: 1
-}
-
-param storageAccountSku object = {
-  name: 'Standard_LRS'
-}
-
-param containerImageName string
-
-param containerImageTag string
-
-module acr 'modules/acr.bicep' = {
-  name: 'acr'
-  params: {
-    name: acrRegistryName
-    location: location
-  }
 }
 
 module vnet 'modules/vnet.bicep' = {
@@ -39,14 +30,39 @@ module vnet 'modules/vnet.bicep' = {
   }
 }
 
-module storage 'modules/storage.bicep' = {
-  name: 'storage'
+@description('The name of the SKU to use when creating the virtual machine.')
+param vmSize string = 'Standard_DS1_v2'
+
+@description('The type of disk and storage account to use for the virtual machine\'s OS disk.')
+param vmOSDiskStorageAccountType string = 'StandardSSD_LRS'
+
+@description('The administrator username to use for the virtual machine.')
+param vmAdminUsername string = 'jdadmin'
+
+@description('The administrator password to use for the virtual machine.')
+@secure()
+#disable-next-line secure-parameter-default // TODO
+param vmAdminPassword string = 'Test123!!!!!'
+
+var vmImageReference = {
+  publisher: 'MicrosoftWindowsServer'
+  offer: 'WindowsServer'
+  sku: '2019-Datacenter'
+  version: 'latest'
+}
+
+var containerStartCommand = 'powershell.exe -command "C:/SHIR/setup.ps1"'
+
+module vm 'modules/vm.bicep' = {
+  name: 'vm'
   params: {
     location: location
-    name: storageAccountName
-    privateDnsZoneResourceId: vnet.outputs.privateDnsZoneResourceId
-    privateEndpointSubnetResourceId: vnet.outputs.storageSubnetResourceId
-    storageAccountSku: storageAccountSku
+    subnetResourceId: vnet.outputs.vmSubnetResourceId
+    vmSize: vmSize
+    vmImageReference: vmImageReference
+    vmOSDiskStorageAccountType: vmOSDiskStorageAccountType
+    vmAdminUsername: vmAdminUsername
+    vmAdminPassword: vmAdminPassword
   }
 }
 
@@ -55,6 +71,7 @@ module adf 'modules/data-factory.bicep' = {
   params: {
     dataFactoryName: dataFactoryName
     location: location
+    virtualMachinePrivateIPAddress: vm.outputs.virtualMachinePrivateIPAddress
   }
 }
 
@@ -70,17 +87,22 @@ module app 'modules/app.bicep' = {
   params: {
     location: location
     appName: appName
+    subnetResourceId: vnet.outputs.appOutboundSubnetResourceId
     applicationInsightsInstrumentationKey: applicationInsights.outputs.instrumentationKey
     applicationInsightsConnectionString: applicationInsights.outputs.connectionString
-    containerRegistryName: acr.outputs.registryName
+    containerRegistryName: containerRegistryName
+    containerRegistryUsername: containerRegistryUsername
+    containerRegistryPassword: containerRegistryPassword
     containerImageName: containerImageName
     containerImageTag: containerImageTag
+    containerStartCommand: containerStartCommand
     dataFactoryName: adf.outputs.dataFactoryName
     dataFactoryIntegrationRuntimeName: adf.outputs.integrationRuntimeName
     appServicePlanSku: appServicePlanSku
   }
 }
 
+/*
 module appAcrRoleAssignment 'modules/acr-role-assignment.bicep' = {
   name: 'app-acr-role-assignment'
   params: {
@@ -88,3 +110,4 @@ module appAcrRoleAssignment 'modules/acr-role-assignment.bicep' = {
     principalId: app.outputs.appManagedIdentityPrincipalId
   }
 }
+*/
