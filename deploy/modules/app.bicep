@@ -4,6 +4,8 @@ param location string
 
 param appName string
 
+param subnetResourceId string
+
 param appServicePlanSku object
 
 param applicationInsightsInstrumentationKey string
@@ -12,17 +14,29 @@ param applicationInsightsConnectionString string
 
 param containerRegistryName string
 
+param containerRegistryUsername string
+
+@secure()
+param containerRegistryPassword string
+
 param containerImageName string
 
 param containerImageTag string
+
+param containerStartCommand string
 
 param dataFactoryName string
 
 param dataFactoryIntegrationRuntimeName string
 
+param dataFactoryIntegrationRuntimeNodeName string = 'AppServiceContainer'
+
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' existing = {
   name: containerRegistryName
 }
+
+var containerRegistryHostName = '${containerRegistryName}.azurecr.io'
+var appWindowsFxVersion = 'DOCKER|${containerRegistryHostName}/${containerImageName}:${containerImageTag}'
 
 resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' existing = {
   name: dataFactoryName
@@ -32,10 +46,15 @@ resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' existing = {
   }
 }
 
+var dataFactoryAuthKey = dataFactory::integrationRuntime.listAuthKeys().authKey1
+
 resource appServicePlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   name: appServicePlanName
   location: location
   sku: appServicePlanSku
+  properties: {
+    hyperV: true
+  }
 }
 
 resource app 'Microsoft.Web/sites@2021-03-01' = {
@@ -46,6 +65,7 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
   }
   properties: {
     serverFarmId: appServicePlan.id
+    //virtualNetworkSubnetId: subnetResourceId
     siteConfig: {
       appSettings: [
         {
@@ -70,7 +90,15 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
         }
         {
           name: 'DOCKER_REGISTRY_SERVER_URL'
-          value: 'https://${containerRegistryName}.azurecr.io' // TODO
+          value: 'https://${containerRegistryHostName}'
+        }
+        {
+          name: 'DOCKER_REGISTRY_SERVER_USERNAME'
+          value: containerRegistryUsername
+        }
+        {
+          name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
+          value: containerRegistryPassword
         }
         {
           name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
@@ -78,13 +106,23 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
         }
         {
           name: 'AUTH_KEY'
-          value: dataFactory::integrationRuntime.listAuthKeys().authKey1
+          value: dataFactoryAuthKey
+        }
+        {
+          name: 'NODE_NAME'
+          value: dataFactoryIntegrationRuntimeNodeName
+        }
+        {
+          name: 'CONTAINER_AVAILABILITY_CHECK_MODE'
+          value: 'Off'
+        }
+        {
+          name: 'WEBSITES_CONTAINER_STOP_TIME_LIMIT'
+          value: '00:02:00'
         }
       ]
-      acrUseManagedIdentityCreds: true
-      vnetRouteAllEnabled: true
-      windowsFxVersion: 'DOCKER|${containerRegistryName}.azurecr.io/${containerImageName}:${containerImageTag}' // TODO assemble this properly
-      appCommandLine: ''
+      windowsFxVersion: appWindowsFxVersion
+      appCommandLine: containerStartCommand
       alwaysOn: true
       ftpsState: 'Disabled'
     }
