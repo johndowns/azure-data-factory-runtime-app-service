@@ -71,6 +71,14 @@ module adf 'modules/data-factory.bicep' = {
   params: {
     dataFactoryName: dataFactoryName
     location: location
+  }
+}
+
+module dataFactoryPipeline 'modules/data-factory-pipeline.bicep' = {
+  name: 'adf-pipeline'
+  params: {
+    dataFactoryName: adf.outputs.dataFactoryName
+    integrationRuntimeName: adf.outputs.integrationRuntimeName
     virtualMachinePrivateIPAddress: vm.outputs.virtualMachinePrivateIPAddress
   }
 }
