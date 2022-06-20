@@ -65,7 +65,7 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
   }
   properties: {
     serverFarmId: appServicePlan.id
-    //virtualNetworkSubnetId: subnetResourceId
+    virtualNetworkSubnetId: subnetResourceId
     siteConfig: {
       appSettings: [
         {
