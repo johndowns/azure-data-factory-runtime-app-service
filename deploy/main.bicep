@@ -79,7 +79,7 @@ module adf 'modules/data-factory.bicep' = {
   params: {
     dataFactoryName: dataFactoryName
     location: location
-    privateDnsZoneResourceId: vnet.outputs.privateDnsZoneResourceId
+    virtualNetworkName: vnet.outputs.virtualNetworkName
     dataFactorySubnetResourceId: vnet.outputs.dataFactorySubnetResourceId
   }
 }

@@ -16,9 +16,6 @@ param dataFactorySubnetAddressPrefix string = '10.0.1.0/24'
 @description('The address prefix of the subnet for the virtual machine with the private web server.')
 param vmSubnetAddressPrefix string = '10.0.2.0/24'
 
-@description('The name of the private DNS zone to use for private endpoints.')
-param privateDnsZoneName string = '${uniqueString(resourceGroup().id)}.azuresamples.local'
-
 var appOutboundSubnetName = 'app-outbound'
 var dataFactorySubnetName = 'data-factory'
 var vmSubnetName = 'vm'
@@ -81,27 +78,10 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-08-01' = {
   }
 }
 
-resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
-  name: privateDnsZoneName
-  location: 'global'
-}
-
-resource privateDnsZoneLinkToVNet 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2018-09-01' = {
-  parent: privateDnsZone
-  name: 'link_to_${toLower(virtualNetwork.name)}'
-  location: 'global'
-  properties: {
-    registrationEnabled: false
-    virtualNetwork: {
-      id: virtualNetwork.id
-    }
-  }
-}
+output virtualNetworkName string = virtualNetwork.name
 
 output appOutboundSubnetResourceId string = virtualNetwork::appOutboundSubnet.id
 
 output dataFactorySubnetResourceId string = virtualNetwork::dataFactorySubnet.id
 
 output vmSubnetResourceId string = virtualNetwork::vmSubnet.id
-
-output privateDnsZoneResourceId string = privateDnsZone.id
