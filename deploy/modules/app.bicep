@@ -165,9 +165,6 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
       // The container image to deploy and the startup command to use.
       windowsFxVersion: appWindowsFxVersion
       appCommandLine: containerStartCommand
-
-      // Force all traffic through the VNet so it's routed to the private endpoints correctly.
-      vnetRouteAllEnabled: true
     }
   }
   dependsOn: [
