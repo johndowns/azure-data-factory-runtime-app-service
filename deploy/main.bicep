@@ -32,8 +32,6 @@ param vmAdminUsername string = 'shirdemoadmin'
 @secure()
 param vmAdminPassword string
 
-var containerStartCommand = 'powershell.exe -command "C:/SHIR/setup.ps1"'
-
 // Deploy the container registry and build the container image.
 module acr 'modules/acr.bicep' = {
   name: 'acr'
@@ -114,7 +112,6 @@ module app 'modules/app.bicep' = {
     containerRegistryName: acr.outputs.containerRegistryName
     containerImageName: acr.outputs.containerImageName
     containerImageTag: acr.outputs.containerImageTag
-    containerStartCommand: containerStartCommand
     dataFactoryName: adf.outputs.dataFactoryName
     dataFactoryIntegrationRuntimeName: adf.outputs.integrationRuntimeName
     appServicePlanSku: appServicePlanSku

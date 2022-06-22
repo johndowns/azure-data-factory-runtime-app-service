@@ -28,9 +28,6 @@ param containerImageName string
 @description('The tag of the container image within the registry.')
 param containerImageTag string
 
-@description('The command to run on the container when it starts.')
-param containerStartCommand string
-
 @description('The name of the data factory that the self-hosted integration runtime should connect to.')
 param dataFactoryName string
 
@@ -162,9 +159,8 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
       acrUseManagedIdentityCreds: true
       acrUserManagedIdentityID: managedIdentity.properties.clientId
 
-      // The container image to deploy and the startup command to use.
+      // The container image to deploy.
       windowsFxVersion: appWindowsFxVersion
-      appCommandLine: containerStartCommand
     }
   }
   dependsOn: [
