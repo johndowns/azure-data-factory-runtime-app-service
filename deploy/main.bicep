@@ -1,17 +1,6 @@
 param location string = resourceGroup().location
 
-param containerRegistryName string
-
-param containerRegistryResourceGroupName string
-
-param containerRegistryUsername string
-
-@secure()
-param containerRegistryPassword string
-
-param containerImageName string = 'adf/shir'
-
-param containerImageTag string = 'v3'
+param containerRegistryName string = 'shir${uniqueString(resourceGroup().id)}'
 
 param vnetName string = 'shirdemo'
 
@@ -39,21 +28,30 @@ param vmSize string = 'Standard_DS1_v2'
 param vmOSDiskStorageAccountType string = 'StandardSSD_LRS'
 
 @description('The administrator username to use for the virtual machine.')
-param vmAdminUsername string = 'jdadmin'
+param vmAdminUsername string = 'shirdemoadmin'
 
 @description('The administrator password to use for the virtual machine.')
 @secure()
-#disable-next-line secure-parameter-default // TODO
-param vmAdminPassword string = 'Test123!!!!!'
+param vmAdminPassword string
 
+var containerStartCommand = 'powershell.exe -command "C:/SHIR/setup.ps1"'
+
+// Deploy the container registry and build the container image.
+module acr 'modules/acr.bicep' = {
+  name: 'acr'
+  params: {
+    name: containerRegistryName
+    location: location
+  }
+}
+
+// Deploy a virtual machine with a private web server.
 var vmImageReference = {
   publisher: 'MicrosoftWindowsServer'
   offer: 'WindowsServer'
   sku: '2019-Datacenter'
   version: 'latest'
 }
-
-var containerStartCommand = 'powershell.exe -command "C:/SHIR/setup.ps1"'
 
 module vm 'modules/vm.bicep' = {
   name: 'vm'
@@ -68,6 +66,7 @@ module vm 'modules/vm.bicep' = {
   }
 }
 
+// Deploy the data factory.
 module adf 'modules/data-factory.bicep' = {
   name: 'adf'
   params: {
@@ -76,6 +75,7 @@ module adf 'modules/data-factory.bicep' = {
   }
 }
 
+// Deploy a Data Factory pipeline to connect to the private web server on the VM.
 module dataFactoryPipeline 'modules/data-factory-pipeline.bicep' = {
   name: 'adf-pipeline'
   params: {
@@ -85,6 +85,7 @@ module dataFactoryPipeline 'modules/data-factory-pipeline.bicep' = {
   }
 }
 
+// Deploy Application Insights, which the App Service app uses.
 module applicationInsights 'modules/application-insights.bicep' = {
   name: 'application-insights'
   params: {
@@ -92,6 +93,7 @@ module applicationInsights 'modules/application-insights.bicep' = {
   }
 }
 
+// Deploy the App Service app resources and deploy the container image from the container registry.
 module app 'modules/app.bicep' = {
   name: 'app'
   params: {
@@ -100,12 +102,9 @@ module app 'modules/app.bicep' = {
     subnetResourceId: vnet.outputs.appOutboundSubnetResourceId
     applicationInsightsInstrumentationKey: applicationInsights.outputs.instrumentationKey
     applicationInsightsConnectionString: applicationInsights.outputs.connectionString
-    containerRegistryName: containerRegistryName
-    containerRegistryResourceGroupName: containerRegistryResourceGroupName
-    containerRegistryUsername: containerRegistryUsername
-    containerRegistryPassword: containerRegistryPassword
-    containerImageName: containerImageName
-    containerImageTag: containerImageTag
+    containerRegistryName: acr.outputs.containerRegistryName
+    containerImageName: acr.outputs.containerImageName
+    containerImageTag: acr.outputs.containerImageTag
     containerStartCommand: containerStartCommand
     dataFactoryName: adf.outputs.dataFactoryName
     dataFactoryIntegrationRuntimeName: adf.outputs.integrationRuntimeName

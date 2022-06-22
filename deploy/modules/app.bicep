@@ -14,13 +14,6 @@ param applicationInsightsConnectionString string
 
 param containerRegistryName string
 
-param containerRegistryResourceGroupName string
-
-param containerRegistryUsername string
-
-@secure()
-param containerRegistryPassword string
-
 param containerImageName string
 
 param containerImageTag string
@@ -68,7 +61,6 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-
 
 module appAcrRoleAssignment 'acr-role-assignment.bicep' = {
   name: 'app-acr-role-assignment'
-  scope: resourceGroup(containerRegistryResourceGroupName)
   params: {
     containerRegistryName: containerRegistryName
     principalId: managedIdentity.properties.principalId
@@ -115,11 +107,11 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
         }
         {
           name: 'DOCKER_REGISTRY_SERVER_USERNAME'
-          value: containerRegistryUsername
+          value: containerRegistry.listCredentials().username
         }
         {
           name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
-          value: containerRegistryPassword
+          value: containerRegistry.listCredentials().passwords[0].value
         }
         {
           name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
