@@ -152,6 +152,11 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
           name: 'CONTAINER_AVAILABILITY_CHECK_MODE'
           value: 'Off'
         }
+        {
+          // Resolve DNS requests by using the private DNS zone on the VNet.
+          name: 'WEBSITE_DNS_SERVER'
+          value: '168.63.129.16'
+        }
       ]
       // Use a user-assigned managed identity to connect to the container registry. (We still need the DOCKER_REGISTRY_SERVER_* settings in the appSettings array, though.)
       acrUseManagedIdentityCreds: true
@@ -160,6 +165,9 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
       // The container image to deploy and the startup command to use.
       windowsFxVersion: appWindowsFxVersion
       appCommandLine: containerStartCommand
+
+      // Force all traffic through the VNet so it's routed to the private endpoints correctly.
+      vnetRouteAllEnabled: true
     }
   }
   dependsOn: [

@@ -78,26 +78,10 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-08-01' = {
   }
 }
 
-/*
-resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
-  name: privateDnsZoneName
-  location: 'global'
-}
+output virtualNetworkName string = virtualNetwork.name
 
-resource privateDnsZoneLinkToVNet 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2018-09-01' = {
-  parent: privateDnsZone
-  name: 'link_to_${toLower(virtualNetwork.name)}'
-  location: 'global'
-  properties: {
-    registrationEnabled: false
-    virtualNetwork: {
-      id: virtualNetwork.id
-    }
-  }
-}
+output appOutboundSubnetResourceId string = virtualNetwork::appOutboundSubnet.id
 
-output privateDnsZoneResourceId string = privateDnsZone.id
-*/
+output dataFactorySubnetResourceId string = virtualNetwork::dataFactorySubnet.id
 
 output vmSubnetResourceId string = virtualNetwork::vmSubnet.id
-output appOutboundSubnetResourceId string = virtualNetwork::appOutboundSubnet.id
