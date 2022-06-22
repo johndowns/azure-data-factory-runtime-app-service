@@ -1,29 +1,43 @@
+@description('The name of the App Service plan to create.')
 param appServicePlanName string = 'shir-plan'
 
+@description('The location into which the Azure resources should be deployed.')
 param location string
 
+@description('The name of the App Service application to create. This must be globally unique.')
 param appName string
 
-param subnetResourceId string
+@description('The resource ID of the subnet to use for outbound connections.')
+param appOutboundSubnetResourceId string
 
+@description('The name of the SKU to use when creating the virtual machine.')
 param appServicePlanSku object
 
+@description('The instrumentation key of the Application Insights resource to send telemetry to.')
 param applicationInsightsInstrumentationKey string
 
+@description('The connection string for the Application Insights resource to send telemetry to.')
 param applicationInsightsConnectionString string
 
+@description('The name of the container registry that has the container image.')
 param containerRegistryName string
 
+@description('The repository name of the container image within the registry.')
 param containerImageName string
 
+@description('The tag of the container image within the registry.')
 param containerImageTag string
 
+@description('The command to run on the container when it starts.')
 param containerStartCommand string
 
+@description('The name of the data factory that the self-hosted integration runtime should connect to.')
 param dataFactoryName string
 
+@description('The name of the self-hosted integration runtime that the container should connect to.')
 param dataFactoryIntegrationRuntimeName string
 
+@description('The name of the node to create for the self-hosted integration runtime.')
 param dataFactoryIntegrationRuntimeNodeName string = 'AppServiceContainer'
 
 var managedIdentityName = 'SampleApp'
@@ -78,7 +92,7 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
   }
   properties: {
     serverFarmId: appServicePlan.id
-    virtualNetworkSubnetId: subnetResourceId
+    virtualNetworkSubnetId: appOutboundSubnetResourceId
     siteConfig: {
       appSettings: [
         {

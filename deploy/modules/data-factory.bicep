@@ -1,5 +1,7 @@
+@description('The name of the data factory to create. This must be globally unique.')
 param dataFactoryName string
 
+@description('The location into which the Azure resources should be deployed.')
 param location string
 
 var integrationRuntimeName = 'self-hosted-runtime'

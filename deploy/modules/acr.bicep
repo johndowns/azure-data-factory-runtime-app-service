@@ -1,7 +1,10 @@
+@description('The name of the container registry to create. This must be globally unique.')
 param name string = 'shir${uniqueString(resourceGroup().id)}'
 
+@description('The name of the SKU to use when creating the container registry.')
 param skuName string = 'Standard'
 
+@description('The location into which the Azure resources should be deployed.')
 param location string  = resourceGroup().location
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {

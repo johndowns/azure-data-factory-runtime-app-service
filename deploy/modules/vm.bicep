@@ -1,4 +1,4 @@
-@description('The location into which the Private Link service resources should be deployed.')
+@description('The location into which the Azure resources should be deployed.')
 param location string
 
 @description('The resource ID of the virtual network subnet that the VM should be deployed into.')
