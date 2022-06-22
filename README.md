@@ -41,7 +41,7 @@ Next, initiate the deployment of the Bicep file. The only mandatory parameter is
 ```azurecli
 az deployment group create \
   --resource-group SHIR \
-  --template-file main.bicep \
+  --template-file deploy/main.bicep \
   --parameters 'vmAdminPassword=<YOUR-VM-ADMIN-PASSWORD>'
 ```
 
