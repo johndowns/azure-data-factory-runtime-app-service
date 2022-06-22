@@ -94,6 +94,8 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
     serverFarmId: appServicePlan.id
     virtualNetworkSubnetId: appOutboundSubnetResourceId
     siteConfig: {
+      alwaysOn: true
+      ftpsState: 'Disabled'
       appSettings: [
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
@@ -116,40 +118,48 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
           value: '1'
         }
         {
+          // The URL for the container registry.
           name: 'DOCKER_REGISTRY_SERVER_URL'
           value: 'https://${containerRegistryHostName}'
         }
         {
+          // The username to use when accessing the container registry.
           name: 'DOCKER_REGISTRY_SERVER_USERNAME'
           value: containerRegistry.listCredentials().username
         }
         {
+          // The password to use when accessing the container registry.
           name: 'DOCKER_REGISTRY_SERVER_PASSWORD'
           value: containerRegistry.listCredentials().passwords[0].value
         }
         {
+          // Disable persistent storage because we don't need it.
           name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
           value: 'false'
         }
         {
+          // The authentication key to use when connecting to Azure Data Factory.
           name: 'AUTH_KEY'
           value: dataFactoryAuthKey
         }
         {
+          // The name of the node to create for the self-hosted integration runtime.
           name: 'NODE_NAME'
           value: dataFactoryIntegrationRuntimeNodeName
         }
         {
+          // Disable container availability checks, because this runs as a background process.
           name: 'CONTAINER_AVAILABILITY_CHECK_MODE'
           value: 'Off'
         }
       ]
+      // Use a user-assigned managed identity to connect to the container registry. (We still need the DOCKER_REGISTRY_SERVER_* settings in the appSettings array, though.)
       acrUseManagedIdentityCreds: true
       acrUserManagedIdentityID: managedIdentity.properties.clientId
+
+      // The container image to deploy and the startup command to use.
       windowsFxVersion: appWindowsFxVersion
       appCommandLine: containerStartCommand
-      alwaysOn: true
-      ftpsState: 'Disabled'
     }
   }
   dependsOn: [
