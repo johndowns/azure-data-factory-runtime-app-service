@@ -135,16 +135,6 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
           value: 'false'
         }
         {
-          // The authentication key to use when connecting to Azure Data Factory.
-          name: 'AUTH_KEY'
-          value: dataFactoryAuthKey
-        }
-        {
-          // The name of the node to create for the self-hosted integration runtime.
-          name: 'NODE_NAME'
-          value: dataFactoryIntegrationRuntimeNodeName
-        }
-        {
           // Disable container availability checks, because this runs as a background process.
           name: 'CONTAINER_AVAILABILITY_CHECK_MODE'
           value: 'Off'
@@ -153,6 +143,16 @@ resource app 'Microsoft.Web/sites@2021-03-01' = {
           // Resolve DNS requests by using the private DNS zone on the VNet.
           name: 'WEBSITE_DNS_SERVER'
           value: '168.63.129.16'
+        }
+        {
+          // The authentication key to use when connecting to Azure Data Factory.
+          name: 'AUTH_KEY'
+          value: dataFactoryAuthKey
+        }
+        {
+          // The name of the node to create for the self-hosted integration runtime.
+          name: 'NODE_NAME'
+          value: dataFactoryIntegrationRuntimeNodeName
         }
       ]
       // Use a user-assigned managed identity to connect to the container registry. (We still need the DOCKER_REGISTRY_SERVER_* settings in the appSettings array, though.)
