@@ -106,7 +106,7 @@ module app 'modules/app.bicep' = {
   params: {
     location: location
     appName: appName
-    subnetResourceId: vnet.outputs.appOutboundSubnetResourceId
+    appOutboundSubnetResourceId: vnet.outputs.appOutboundSubnetResourceId
     applicationInsightsInstrumentationKey: applicationInsights.outputs.instrumentationKey
     applicationInsightsConnectionString: applicationInsights.outputs.connectionString
     containerRegistryName: acr.outputs.containerRegistryName
