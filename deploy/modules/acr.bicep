@@ -21,7 +21,7 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-pr
 // Build the container image.
 var containerImageName = 'adf/shir'
 var containerImageTag = 'v3'
-var dockerfileSourceGitRepository = 'https://github.com/johndowns/Azure-Data-Factory-Integration-Runtime-in-Windows-Container.git'
+var dockerfileSourceGitRepository = 'https://github.com/Azure/Azure-Data-Factory-Integration-Runtime-in-Windows-Container.git'
 resource buildTask 'Microsoft.ContainerRegistry/registries/taskRuns@2019-06-01-preview' = {
   parent: containerRegistry
   name: 'buildTask'
